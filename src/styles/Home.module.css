@@ -1,0 +1,35 @@
+.productList, .productItem li {
+    margin: 0;
+    padding: 0;
+}
+
+.productList li {
+    width: 20rem;
+    margin-bottom: 4rem;
+}
+
+.productItem a {
+    color: #000;
+    text-decoration: none;
+}
+
+.productImage {
+    background-color: #edeee6;
+    object-fit: cover;
+    height: 20rem;
+    border: none;
+}
+  
+.productContainer * {
+    color: var(--f-black);
+    font-weight: 300;
+    text-decoration: none;
+}
+  
+.productTitle {
+    margin-top: 1rem;
+}
+  
+.price {
+    font-weight: 200;
+}
