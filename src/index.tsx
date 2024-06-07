@@ -1,15 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { init } from "@contentful/app-sdk";
-import { AppExtensionSDK } from "@contentful/app-sdk";
+import { init, locations } from "@contentful/app-sdk";
+import { AppExtensionSDK, EntryFieldAPI } from "@contentful/app-sdk";
 import { createRoot } from "react-dom/client";
 import styles from "./styles/Home.module.css";
-
-let query: string;
-let locale: string;
-let pageSize: number;
-query = "shirts";
-locale = "nl-NL";
-pageSize = 25;
 
 const eva_app_token = process.env.REACT_APP_EVA_APP_TOKEN;
 
@@ -28,9 +21,10 @@ interface AppProps {
 const App: React.FC<AppProps> = ({ sdk }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState<string>("");
 
   useEffect(() => {
-    async function fetchProducts() {
+    const fetchProducts = async (searchQuery: string) => {
       try {
         const response = await fetch(
           "https://api.euw.scotch.test.eva-online.cloud/message/SearchProducts",
@@ -38,7 +32,7 @@ const App: React.FC<AppProps> = ({ sdk }) => {
             method: "POST",
             headers: {
               accept: "application/json",
-              "accept-language": locale,
+              "accept-language": "nl-NL",
               clientname: "eva-sdk-core",
               clientversion: "2.0.0",
               "content-type": "application/json",
@@ -65,7 +59,7 @@ const App: React.FC<AppProps> = ({ sdk }) => {
             },
             body: JSON.stringify({
               Filters: {},
-              Query: query,
+              Query: searchQuery,
               IncludedFields: [
                 "currency_id",
                 "display_price",
@@ -81,7 +75,7 @@ const App: React.FC<AppProps> = ({ sdk }) => {
                 "logical_level_hierarchy",
                 "sizes",
               ],
-              PageSize: pageSize,
+              PageSize: 25,
               Options: {
                 IncludePrefigureDiscounts: true,
               },
@@ -98,7 +92,6 @@ const App: React.FC<AppProps> = ({ sdk }) => {
         console.log("Response data:", data);
 
         if (data.Products) {
-          // Accessing the correct array
           setProducts(data.Products);
         } else {
           throw new Error("Invalid response structure");
@@ -107,10 +100,27 @@ const App: React.FC<AppProps> = ({ sdk }) => {
         console.error("Fetch error:", error);
         setError(`Failed to fetch products`);
       }
-    }
+    };
 
-    fetchProducts();
-  }, []);
+    if (query) {
+      fetchProducts(query);
+    }
+  }, [query]);
+
+  useEffect(() => {
+    const fetchQueryFromField = async () => {
+      const entry = await sdk.entry.getSys();
+      const field = sdk.entry.fields["searchQuery"] as EntryFieldAPI;
+
+      setQuery(field.getValue());
+
+      field.onValueChanged((value: string) => {
+        setQuery(value);
+      });
+    };
+
+    fetchQueryFromField();
+  }, [sdk]);
 
   return (
     <div className={styles.productContainer}>
@@ -121,7 +131,6 @@ const App: React.FC<AppProps> = ({ sdk }) => {
           products.map((product) => (
             <li key={product.product_id}>
               <a href={`/product/${product.slug}`}>
-                {/* Conditional rendering for the image */}
                 {product.primary_image && (
                   <img
                     className={styles.productImage}
