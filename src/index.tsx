@@ -4,12 +4,8 @@ import { AppExtensionSDK } from "@contentful/app-sdk";
 import { createRoot } from "react-dom/client";
 import styles from "./styles/Home.module.css";
 
-let query: string;
-let locale: string;
-let pageSize: number;
-query = "bags";
-locale = "nl-NL";
-pageSize = 25;
+let locale = "nl-NL";
+let pageSize = 25;
 
 const eva_app_token = process.env.REACT_APP_EVA_APP_TOKEN;
 
@@ -28,9 +24,12 @@ interface AppProps {
 const App: React.FC<AppProps> = ({ sdk }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState<string>("");
 
   useEffect(() => {
     async function fetchProducts() {
+      if (!query) return;
+
       try {
         const response = await fetch(
           "https://api.euw.scotch.test.eva-online.cloud/message/SearchProducts",
@@ -110,11 +109,21 @@ const App: React.FC<AppProps> = ({ sdk }) => {
     }
 
     fetchProducts();
-  }, []);
+  }, [query]);
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(event.target.value);
+  };
 
   return (
     <div className={styles.productContainer}>
       <h1>Products</h1>
+      <input
+        type="text"
+        value={query}
+        onChange={handleSearch}
+        placeholder="Search products..."
+      />
       {error && <p style={{ color: "red" }}>{error}</p>}
       <ul className={styles.productList}>
         {products &&
