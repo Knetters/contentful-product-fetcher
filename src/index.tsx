@@ -7,7 +7,7 @@ import styles from "./styles/Home.module.css";
 let query: string;
 let locale: string;
 let pageSize: number;
-query = "shirts";
+query = "bags";
 locale = "nl-NL";
 pageSize = 25;
 
